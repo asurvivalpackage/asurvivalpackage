@@ -41,6 +41,7 @@ class Flexible_Parametric_Models:
         self.est_of_params = None
 
     def set_self(self, data, df, knots, tolerance):
+        data['Time'] = np.log(data['Time'])
         self.data = data
         self.df = df
         self.knots = knots
@@ -64,7 +65,7 @@ class Flexible_Parametric_Models:
         self.est_of_params = None
 
     # Main restricted cubic spline method to fit the FP to the dataset given df
-    def fit_FP(self, data, df=1, knots=None, tolerance=1e-6, verbose=False):
+    def fit_FP(self, data, df=3, knots=None, tolerance=1e-14, verbose=False):
         # Set all attibutes
         self.set_self(data, df=df, knots=knots, tolerance=tolerance)
 
@@ -108,7 +109,7 @@ class Flexible_Parametric_Models:
         elif len(self.knots) != (self.df + 1):
             raise Exception('Number of knots given does not match the degrees of freedom specified.')
         else:
-            self.knots = self.knots
+            self.knots = np.log(self.knots)
 
     # Method to get the knot locations
     def get_knots(self):
@@ -318,8 +319,22 @@ class Flexible_Parametric_Models:
         return survival, hazard, log_cum_hazard
 
     @staticmethod
-    def parameters_data_frame(parameters, covariates):
-        return Null
+    def parameters_data_frame(self, parameters, covariates):
+        parameters_df = []
+        for i in len(parameters):
+            if(i==0):
+                name = 'Intercept'
+            if(i<=self.n_spline_terms):
+                name = 'Spline Term S' + str(i)
+            else:
+                name = self.covars_names[i]
+            
+            parameters_df.append({'Parameter': name,
+                                  'Estimate': parameters[i]})
+        
+        parameters_df = pd.DataFrame(parameters_df)
+        
+        return parameters_df
 
     @staticmethod
     def pred_data_frame(times, baseline, covariates, survival, hazard, log_cum_hazard):

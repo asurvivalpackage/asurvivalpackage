@@ -24,7 +24,7 @@ class Parametric_Models:
         self.parameters_exp = []
 
     # Method to fit a model to some dataset
-    def fit_model(self, data, model='exponential', init_parameters=None, max_iter=1000, convergence=0.001):
+    def fit_model(self, data, model='exponential', init_parameters=None, max_iter=1000, convergence=1e-14):
         self.model = model
         self.time = data['Time']
         self.event = data['Event']

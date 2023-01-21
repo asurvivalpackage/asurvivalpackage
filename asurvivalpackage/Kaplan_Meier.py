@@ -31,6 +31,16 @@ class Kaplan_Meier:
 
     # Fit the Kaplan-Meier model to two binary groups e.g. treatment and control
     def fit_kaplan_meier_two_groups(self, data, covariate, CI=True):
+        
+        # Check len(Time) == len(Event)
+        if(len(data['Time']) != len(data['Event'])):
+           print('Time and Event columns must have equal length')
+           exit()
+        
+        # Check there are no 0 or negative times
+        if((data['Time']<0).values.any() or (data['Time']==0).values.any()):
+           print('Times must be > 0')
+           exit()
 
         # Split the data into the two binary groups - using covariate where covariate = 0 and covariate = 1
         base_group_index, = np.where(data[covariate] == 0)
@@ -49,6 +59,17 @@ class Kaplan_Meier:
 
     # Fit the Kaplan-Meier survival function estimate and return data frame
     def fit_kaplan_meier(self, data, CI=True):
+        
+        # Check len(Time) == len(Event)
+        if(len(data['Time']) != len(data['Event'])):
+           print('Time and Event columns must have equal length')
+           exit()
+        
+        # Check there are no 0 or negative times
+        if((data['Time']<0).values.any() or (data['Time']==0).values.any()):
+           print('Times must be > 0')
+           exit()
+        
         self.data = data
         self.times = self.data['Time']
         self.events = self.data['Event']
