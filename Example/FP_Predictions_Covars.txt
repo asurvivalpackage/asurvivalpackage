@@ -1,0 +1,2 @@
+Time	Covariate_0	Covariate_1	Covariate_2	Covariate_3	S(t)	h(t)	log H(t)
+10.000001	65	1	35	12	0.5129119600045747	0.06871134921729304	-0.4039895975131951

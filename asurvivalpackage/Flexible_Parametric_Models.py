@@ -41,14 +41,14 @@ class Flexible_Parametric_Models:
         self.est_of_params = None
 
     def set_self(self, data, df, knots, tolerance):
-        data['Time'] = np.log(data['Time'])
+        #data['Time'] = np.log(data['Time'])
         self.data = data
         self.df = df
         self.knots = knots
         self.n_spline_terms = self.df + 1
 
         # Get the times, events and covariates from the dataframe
-        self.x = self.data['Time']
+        self.x = np.log(self.data['Time'])
         self.events = self.data['Event']
         self.covars = data.drop(columns={'Time', 'Event'})
         self.covars_names = self.covars.columns
@@ -99,7 +99,10 @@ class Flexible_Parametric_Models:
         # Set estimates attribute of FP object to the estimated parameters - use in predicting at time points
         self.est_of_params = est_params
 
-        return self.est_of_params
+        parameters = self.parameters_data_frame(np.exp(est_params), self.covars_names, self.n_spline_terms)
+
+        #return self.est_of_params
+        return parameters
 
     def handle_knots(self):
         # If the user hasn't specified knots, calculate them using the df
@@ -319,27 +322,25 @@ class Flexible_Parametric_Models:
         return survival, hazard, log_cum_hazard
 
     @staticmethod
-    def parameters_data_frame(self, parameters, covariates):
+    def parameters_data_frame(parameters, covars_names, n_spline_terms):
         parameters_df = []
-        for i in len(parameters):
-            if(i==0):
+        for i in range(0, len(parameters)):
+            if(i<1):
                 name = 'Intercept'
-            if(i<=self.n_spline_terms):
+            elif(0<i<=(n_spline_terms-1)):
                 name = 'Spline Term S' + str(i)
-            else:
-                name = self.covars_names[i]
-            
+            elif(i > (n_spline_terms-1)):
+                j = i - n_spline_terms
+                name = covars_names[j]
             parameters_df.append({'Parameter': name,
                                   'Estimate': parameters[i]})
-        
+
         parameters_df = pd.DataFrame(parameters_df)
-        
         return parameters_df
 
     @staticmethod
     def pred_data_frame(times, baseline, covariates, survival, hazard, log_cum_hazard):
-        data = {'Time': np.round(np.exp(times), decimals=0)}
-
+        data = {'Time': np.exp(times)}
         predictions = pd.DataFrame(data)
 
         if baseline is False:

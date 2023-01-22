@@ -75,22 +75,27 @@ class Simulate_Data:
     def simulate_times_model(self, predictions, event_times, max_time, real_data = None, censoring = None, cens_parameters = None):
         # Get number of observations
         rows, columns = predictions.shape
-        n = rows
 
         # Simulate from uniform
-        U = np.random.uniform(0,1,n)
-        predictions = predictions.T
+        U = np.random.uniform(0,1,columns)
 
         # Find S(t) closest to U and corresponding time
-        abs_values = np.absolute(predictions-U)
+        abs_values = []
+        for i in range(0, columns):
+            abs_values_i = np.absolute(predictions[:,i]-U[i])
+            abs_values.append(abs_values_i)
+        abs_values = np.array(abs_values)
+        abs_values = np.transpose(abs_values) # transposed so rows = times, columns = individuals
+
         abs_values = pd.DataFrame(abs_values)
+
         # Index of the row containing the closest S(t) to U for each individual
         times = abs_values[::-1].idxmin(axis=0).to_numpy() # process rows in reverse order to find last occurence of minimum
 
         newtimes = []
         i = 0
         # Get the survival time for each individual
-        while(i<n):
+        while(i<columns):
             index = times[i] # Get the index of the closest S(t) to U for individual_i
             surv_i = predictions[index][i] # Getting the survival probability corresponding to that time
 
@@ -130,8 +135,7 @@ class Simulate_Data:
             data = self.data_frame(newtimes, event_indicator)
         else:
             covar = real_data.drop(columns=['Time', 'Event'])
-            cov_names = covar.columns
-            data = self.data_frame(newtimes, event_indicator, covar, cov_names)
+            data = self.data_frame(newtimes, event_indicator, covar)
 
         return data
 
@@ -171,6 +175,7 @@ class Simulate_Data:
             data = covar
             data['Time'] = newtimes
             data['Event'] = event
+
 
         data = pd.DataFrame(data)
 
